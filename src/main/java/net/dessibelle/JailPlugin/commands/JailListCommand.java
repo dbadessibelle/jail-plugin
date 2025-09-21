@@ -38,9 +38,10 @@ public class JailListCommand implements CommandExecutor {
             boolean isOnline = plugin.getServer().getPlayer(jailedPlayer.getUuid()) != null;
             String onlineStatus = isOnline ? "§aOnline" : "§cOffline";
             
-            sender.sendMessage(String.format("§7- §f%s §7(%s) - §e%s §7- §f%s §7by §f%s",
+            sender.sendMessage(String.format("§7- §f%s §7(%s) §7[§6%s§7] - §e%s §7- §f%s §7by §f%s",
                 jailedPlayer.getPlayerName(),
                 onlineStatus,
+                jailedPlayer.getJailName(),
                 jailedPlayer.getReason(),
                 dateFormatted,
                 jailedPlayer.getJailer()

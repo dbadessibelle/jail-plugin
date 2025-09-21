@@ -64,7 +64,8 @@ public class NPCManager {
         
         // Create NPC name
         String npcName = plugin.getConfigManager().getNPCNameFormat()
-            .replace("{player}", jailedPlayer.getPlayerName());
+            .replace("{player}", jailedPlayer.getPlayerName())
+            .replace("{jail}", jailedPlayer.getJailName().toUpperCase());
         
         // Create NPC
         NPC npc = npcRegistry.createNPC(EntityType.PLAYER, npcName);
@@ -106,8 +107,11 @@ public class NPCManager {
         if (plugin.getJailManager().isPlayerJailed(playerUUID)) {
             removeNPC(playerUUID);
             
-            // Teleport player to jail
-            Location jailLocation = plugin.getConfigManager().getJailLocation();
+            // Get the jail they're assigned to and teleport them there
+            JailedPlayer jailedPlayer = plugin.getJailManager().getJailedPlayer(playerUUID);
+            if (jailedPlayer == null) return;
+            
+            Location jailLocation = plugin.getConfigManager().getJailLocation(jailedPlayer.getJailName());
             if (jailLocation != null) {
                 player.teleport(jailLocation);
             }

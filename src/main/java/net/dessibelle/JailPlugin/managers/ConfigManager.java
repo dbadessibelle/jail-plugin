@@ -33,6 +33,29 @@ public class ConfigManager {
     }
     
     public Location getJailLocation() {
+        return getJailLocation("default");
+    }
+    
+    public Location getJailLocation(String jailName) {
+        // First try to get from database
+        try {
+            var jail = plugin.getDatabaseManager().getJail(jailName);
+            if (jail != null) {
+                return jail.getLocation();
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to get jail location from database: " + e.getMessage());
+        }
+        
+        // Fallback to config for default jail
+        if ("default".equals(jailName)) {
+            return getJailLocationFromConfig();
+        }
+        
+        return null;
+    }
+    
+    private Location getJailLocationFromConfig() {
         String worldName = config.getString("jail.world");
         if (worldName == null) return null;
         
@@ -49,6 +72,25 @@ public class ConfigManager {
     }
     
     public void setJailLocation(Location location) {
+        setJailLocation("default", location, "Default jail location");
+    }
+    
+    public void setJailLocation(String jailName, Location location, String description) {
+        // Save to database
+        try {
+            var jail = new net.dessibelle.JailPlugin.models.Jail(jailName, location, description);
+            plugin.getDatabaseManager().addJail(jail);
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to save jail to database: " + e.getMessage());
+        }
+        
+        // Also save default jail to config for backwards compatibility
+        if ("default".equals(jailName)) {
+            saveJailToConfig(location);
+        }
+    }
+    
+    private void saveJailToConfig(Location location) {
         config.set("jail.world", location.getWorld().getName());
         config.set("jail.x", location.getX());
         config.set("jail.y", location.getY());
@@ -68,7 +110,7 @@ public class ConfigManager {
     
     public String getNPCNameFormat() {
         return ChatColor.translateAlternateColorCodes('&', 
-            config.getString("npc.name_format", "&c[JAILED] &f{player}"));
+            config.getString("npc.name_format", "&c[{jail}] &f{player}"));
     }
     
     public boolean isSkinEnabled() {

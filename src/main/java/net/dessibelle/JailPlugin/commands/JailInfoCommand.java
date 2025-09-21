@@ -60,6 +60,7 @@ public class JailInfoCommand implements CommandExecutor {
         message = message.replace("{reason}", jailedPlayer.getReason());
         message = message.replace("{jailer}", jailedPlayer.getJailer());
         message = message.replace("{date}", dateFormatted);
+        message = message.replace("{jail}", jailedPlayer.getJailName());
         
         sender.sendMessage(message);
         

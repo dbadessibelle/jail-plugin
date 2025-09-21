@@ -19,6 +19,10 @@ public class JailManager {
     }
     
     public boolean jailPlayer(Player player, String reason, String jailer) {
+        return jailPlayer(player, reason, jailer, "default");
+    }
+    
+    public boolean jailPlayer(Player player, String reason, String jailer, String jailName) {
         try {
             // Check if player is already jailed
             if (plugin.getDatabaseManager().isPlayerJailed(player.getUniqueId())) {
@@ -26,7 +30,7 @@ public class JailManager {
             }
             
             // Get jail location
-            Location jailLocation = plugin.getConfigManager().getJailLocation();
+            Location jailLocation = plugin.getConfigManager().getJailLocation(jailName);
             if (jailLocation == null) {
                 return false;
             }
@@ -38,7 +42,8 @@ public class JailManager {
                 reason,
                 jailer,
                 LocalDateTime.now(),
-                player.getLocation()
+                player.getLocation(),
+                jailName
             );
             
             // Save to database
@@ -98,6 +103,45 @@ public class JailManager {
         } catch (SQLException e) {
             plugin.getLogger().severe("Error getting all jailed players: " + e.getMessage());
             return List.of();
+        }
+    }
+    
+    public List<net.dessibelle.JailPlugin.models.Jail> getAllJails() {
+        try {
+            return plugin.getDatabaseManager().getAllJails();
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error getting all jails: " + e.getMessage());
+            return List.of();
+        }
+    }
+    
+    public net.dessibelle.JailPlugin.models.Jail getJail(String jailName) {
+        try {
+            return plugin.getDatabaseManager().getJail(jailName);
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error getting jail: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    public boolean createJail(String jailName, Location location, String description) {
+        try {
+            var jail = new net.dessibelle.JailPlugin.models.Jail(jailName, location, description);
+            plugin.getDatabaseManager().addJail(jail);
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error creating jail: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    public boolean removeJail(String jailName) {
+        try {
+            plugin.getDatabaseManager().removeJail(jailName);
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error removing jail: " + e.getMessage());
+            return false;
         }
     }
     

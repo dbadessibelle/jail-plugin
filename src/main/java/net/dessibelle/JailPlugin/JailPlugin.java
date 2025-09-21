@@ -66,6 +66,8 @@ public class JailPlugin extends JavaPlugin {
         getCommand("jailinfo").setExecutor(new JailInfoCommand(this));
         getCommand("jaillist").setExecutor(new JailListCommand(this));
         getCommand("setjail").setExecutor(new SetJailCommand(this));
+        getCommand("jails").setExecutor(new JailsCommand(this));
+        getCommand("removejail").setExecutor(new RemoveJailCommand(this));
 
 
         //Replace with 'Objects.requireNonNull(getCommand("name"))'
@@ -75,6 +77,8 @@ public class JailPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("jailinfo")).setExecutor(new JailInfoCommand(this));
         Objects.requireNonNull(getCommand("jaillist")).setExecutor(new JailListCommand(this));
         Objects.requireNonNull(getCommand("setjail")).setExecutor(new SetJailCommand(this));
+        Objects.requireNonNull(getCommand("jails")).setExecutor(new JailsCommand(this));
+        Objects.requireNonNull(getCommand("removejail")).setExecutor(new RemoveJailCommand(this));
         */
     }
     

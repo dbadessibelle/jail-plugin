@@ -22,12 +22,26 @@ public class JailCommand implements CommandExecutor {
         }
         
         if (args.length < 1) {
-            sender.sendMessage("§cUsage: /jail <player> [reason]");
+            sender.sendMessage("§cUsage: /jail <player> [jail] [reason]");
             return true;
         }
         
         String targetName = args[0];
-        String reason = args.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)) : "No reason specified";
+        String jailName = "default";
+        String reason = "No reason specified";
+        
+        if (args.length > 1) {
+            // Check if second argument is a jail name
+            if (plugin.getJailManager().getJail(args[1]) != null) {
+                jailName = args[1];
+                if (args.length > 2) {
+                    reason = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+                }
+            } else {
+                // Second argument is part of the reason
+                reason = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+            }
+        }
         
         Player target = plugin.getServer().getPlayer(targetName);
         if (target == null) {
@@ -40,19 +54,21 @@ public class JailCommand implements CommandExecutor {
             return true;
         }
         
-        if (plugin.getConfigManager().getJailLocation() == null) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("jail_not_set"));
+        if (plugin.getConfigManager().getJailLocation(jailName) == null) {
+            sender.sendMessage(plugin.getConfigManager().getMessage("jail_not_set")
+                .replace("{jail}", jailName));
             return true;
         }
         
         String jailerName = sender instanceof Player ? sender.getName() : "Console";
         
-        if (plugin.getJailManager().jailPlayer(target, reason, jailerName)) {
+        if (plugin.getJailManager().jailPlayer(target, reason, jailerName, jailName)) {
             String message = plugin.getConfigManager().getMessage("jail_success", "player", targetName);
             message = message.replace("{reason}", reason);
+            message = message.replace("{jail}", jailName);
             sender.sendMessage(message);
             
-            target.sendMessage("§cYou have been jailed for: §f" + reason);
+            target.sendMessage("§cYou have been jailed in §e" + jailName + " §cfor: §f" + reason);
         } else {
             sender.sendMessage("§cFailed to jail player. Check console for errors.");
         }

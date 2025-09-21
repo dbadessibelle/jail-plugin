@@ -11,7 +11,7 @@ depend: [Citizens]
 commands:
   jail:
     description: Jail a player
-    usage: /jail <player> [reason]
+    usage: /jail <player> [jail] [reason]
     permission: jail.admin
   unjail:
     description: Unjail a player
@@ -26,8 +26,16 @@ commands:
     usage: /jaillist
     permission: jail.list
   setjail:
-    description: Set the jail location
-    usage: /setjail
+    description: Set a jail location
+    usage: /setjail <jail_name> [description]
+    permission: jail.admin
+  jails:
+    description: List all available jails
+    usage: /jails
+    permission: jail.list
+  removejail:
+    description: Remove a jail
+    usage: /removejail <jail_name>
     permission: jail.admin
 
 permissions:

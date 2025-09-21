@@ -26,10 +26,20 @@ public class SetJailCommand implements CommandExecutor {
             return true;
         }
         
-        Player player = (Player) sender;
+        if (args.length < 1) {
+            sender.sendMessage("§cUsage: /setjail <jail_name> [description]");
+            return true;
+        }
         
-        plugin.getConfigManager().setJailLocation(player.getLocation());
-        sender.sendMessage(plugin.getConfigManager().getMessage("jail_set"));
+        Player player = (Player) sender;
+        String jailName = args[0];
+        String description = args.length > 1 ? 
+            String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)) : 
+            "Jail location";
+        
+        plugin.getConfigManager().setJailLocation(jailName, player.getLocation(), description);
+        sender.sendMessage(plugin.getConfigManager().getMessage("jail_set")
+            .replace("{jail}", jailName));
         
         return true;
     }

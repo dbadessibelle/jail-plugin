@@ -13,15 +13,17 @@ public class JailedPlayer {
     private final String jailer;
     private final LocalDateTime jailDate;
     private final Location originalLocation;
+    private final String jailName;
     
     public JailedPlayer(UUID uuid, String playerName, String reason, String jailer, 
-                       LocalDateTime jailDate, Location originalLocation) {
+                       LocalDateTime jailDate, Location originalLocation, String jailName) {
         this.uuid = uuid;
         this.playerName = playerName;
         this.reason = reason;
         this.jailer = jailer;
         this.jailDate = jailDate;
         this.originalLocation = originalLocation;
+        this.jailName = jailName;
     }
     
     public UUID getUuid() {
@@ -46,5 +48,9 @@ public class JailedPlayer {
     
     public Location getOriginalLocation() {
         return originalLocation;
+    }
+    
+    public String getJailName() {
+        return jailName;
     }
 }

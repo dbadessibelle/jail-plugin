@@ -2,6 +2,7 @@ package net.dessibelle.JailPlugin.database;
 
 import net.dessibelle.JailPlugin.JailPlugin;
 import net.dessibelle.JailPlugin.models.JailedPlayer;
+import net.dessibelle.JailPlugin.models.Jail;
 import org.bukkit.Location;
 
 import java.io.File;
@@ -52,6 +53,7 @@ public class DatabaseManager {
                 reason TEXT NOT NULL,
                 jailer TEXT NOT NULL,
                 jail_date TEXT NOT NULL,
+                jail_name TEXT NOT NULL DEFAULT 'default',
                 world TEXT,
                 x REAL,
                 y REAL,
@@ -61,16 +63,37 @@ public class DatabaseManager {
             )
         """;
         
+        String createJailsTable = """
+            CREATE TABLE IF NOT EXISTS jails (
+                name TEXT PRIMARY KEY,
+                world TEXT NOT NULL,
+                x REAL NOT NULL,
+                y REAL NOT NULL,
+                z REAL NOT NULL,
+                yaw REAL NOT NULL,
+                pitch REAL NOT NULL,
+                description TEXT
+            )
+        """;
+        
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createJailedPlayersTable);
+            stmt.execute(createJailsTable);
+            
+            // Add jail_name column to existing records if it doesn't exist
+            try {
+                stmt.execute("ALTER TABLE jailed_players ADD COLUMN jail_name TEXT DEFAULT 'default'");
+            } catch (SQLException e) {
+                // Column already exists, ignore
+            }
         }
     }
     
     public void addJailedPlayer(JailedPlayer jailedPlayer) throws SQLException {
         String sql = """
             INSERT OR REPLACE INTO jailed_players 
-            (uuid, player_name, reason, jailer, jail_date, world, x, y, z, yaw, pitch) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (uuid, player_name, reason, jailer, jail_date, jail_name, world, x, y, z, yaw, pitch) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -79,22 +102,23 @@ public class DatabaseManager {
             pstmt.setString(3, jailedPlayer.getReason());
             pstmt.setString(4, jailedPlayer.getJailer());
             pstmt.setString(5, jailedPlayer.getJailDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            pstmt.setString(6, jailedPlayer.getJailName());
             
             Location originalLocation = jailedPlayer.getOriginalLocation();
             if (originalLocation != null) {
-                pstmt.setString(6, originalLocation.getWorld().getName());
-                pstmt.setDouble(7, originalLocation.getX());
-                pstmt.setDouble(8, originalLocation.getY());
-                pstmt.setDouble(9, originalLocation.getZ());
-                pstmt.setFloat(10, originalLocation.getYaw());
-                pstmt.setFloat(11, originalLocation.getPitch());
+                pstmt.setString(7, originalLocation.getWorld().getName());
+                pstmt.setDouble(8, originalLocation.getX());
+                pstmt.setDouble(9, originalLocation.getY());
+                pstmt.setDouble(10, originalLocation.getZ());
+                pstmt.setFloat(11, originalLocation.getYaw());
+                pstmt.setFloat(12, originalLocation.getPitch());
             } else {
-                pstmt.setNull(6, Types.VARCHAR);
                 pstmt.setNull(7, Types.REAL);
                 pstmt.setNull(8, Types.REAL);
                 pstmt.setNull(9, Types.REAL);
                 pstmt.setNull(10, Types.REAL);
                 pstmt.setNull(11, Types.REAL);
+                pstmt.setNull(12, Types.REAL);
             }
             
             pstmt.executeUpdate();
@@ -147,6 +171,8 @@ public class DatabaseManager {
         String reason = rs.getString("reason");
         String jailer = rs.getString("jailer");
         LocalDateTime jailDate = LocalDateTime.parse(rs.getString("jail_date"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String jailName = rs.getString("jail_name");
+        if (jailName == null) jailName = "default"; // Handle legacy records
         
         Location originalLocation = null;
         String worldName = rs.getString("world");
@@ -161,7 +187,86 @@ public class DatabaseManager {
             );
         }
         
-        return new JailedPlayer(uuid, playerName, reason, jailer, jailDate, originalLocation);
+        return new JailedPlayer(uuid, playerName, reason, jailer, jailDate, originalLocation, jailName);
+    }
+    
+    public void addJail(Jail jail) throws SQLException {
+        String sql = """
+            INSERT OR REPLACE INTO jails 
+            (name, world, x, y, z, yaw, pitch, description) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            Location location = jail.getLocation();
+            pstmt.setString(1, jail.getName());
+            pstmt.setString(2, location.getWorld().getName());
+            pstmt.setDouble(3, location.getX());
+            pstmt.setDouble(4, location.getY());
+            pstmt.setDouble(5, location.getZ());
+            pstmt.setFloat(6, location.getYaw());
+            pstmt.setFloat(7, location.getPitch());
+            pstmt.setString(8, jail.getDescription());
+            
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public void removeJail(String jailName) throws SQLException {
+        String sql = "DELETE FROM jails WHERE name = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, jailName);
+            pstmt.executeUpdate();
+        }
+    }
+    
+    public Jail getJail(String jailName) throws SQLException {
+        String sql = "SELECT * FROM jails WHERE name = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, jailName);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return createJailFromResultSet(rs);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    public List<Jail> getAllJails() throws SQLException {
+        List<Jail> jails = new ArrayList<>();
+        String sql = "SELECT * FROM jails ORDER BY name";
+        
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                jails.add(createJailFromResultSet(rs));
+            }
+        }
+        
+        return jails;
+    }
+    
+    private Jail createJailFromResultSet(ResultSet rs) throws SQLException {
+        String name = rs.getString("name");
+        String worldName = rs.getString("world");
+        String description = rs.getString("description");
+        
+        Location location = new Location(
+            plugin.getServer().getWorld(worldName),
+            rs.getDouble("x"),
+            rs.getDouble("y"),
+            rs.getDouble("z"),
+            rs.getFloat("yaw"),
+            rs.getFloat("pitch")
+        );
+        
+        return new Jail(name, location, description);
     }
     
     public boolean isPlayerJailed(UUID uuid) {
