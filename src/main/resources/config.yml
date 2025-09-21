@@ -5,7 +5,8 @@ database:
   type: sqlite
   filename: jail_data.db
 
-# Jail location (set using /setjail command)
+# Default jail location (legacy support - use /setjail command for new jails)
+# This will be automatically migrated to the database on first run
 jail:
   world: world
   x: 0.0
@@ -14,21 +15,55 @@ jail:
   yaw: 0.0
   pitch: 0.0
 
-# NPC settings
+# NPC settings for offline jailed players
 npc:
+  # Enable/disable NPC creation for offline jailed players
   enabled: true
+  # Radius around jail location where NPCs can spawn
   spawn_radius: 5.0
+  # Name format for NPCs - {jail} = jail name, {player} = player name
   name_format: "&c[{jail}] &f{player}"
+  # Enable player skin on NPCs
   skin_enabled: true
 
-# Messages
+# Plugin messages
 messages:
-  jail_success: "&aPlayer {player} has been jailed in {jail} for: {reason}"
+  # Jail command messages
+  jail_success: "&aPlayer {player} has been jailed in &e{jail} &afor: &f{reason}"
   unjail_success: "&aPlayer {player} has been unjailed"
   already_jailed: "&cPlayer {player} is already jailed"
   not_jailed: "&cPlayer {player} is not jailed"
+  
+  # Jail management messages
   jail_not_set: "&cJail '{jail}' location not set! Use /setjail {jail} first"
   jail_set: "&aJail '{jail}' location set successfully"
+  jail_removed: "&aJail '{jail}' has been removed successfully"
+  jail_not_found: "&cJail '{jail}' does not exist"
+  cannot_remove_default: "&cCannot remove the default jail!"
+  
+  # General messages
   player_not_found: "&cPlayer {player} not found"
   no_permission: "&cYou don't have permission to use this command"
-  jail_info: "&6Jail Info for {player}:\n&7Jail: &e{jail}\n&7Reason: &f{reason}\n&7Jailed by: &f{jailer}\n&7Date: &f{date}"
+  
+  # Info display messages
+  jail_info: "&6=== Jail Info for {player} ===\n&7Jail: &e{jail}\n&7Reason: &f{reason}\n&7Jailed by: &f{jailer}\n&7Date: &f{date}"
+  
+  # List headers
+  jailed_players_header: "&6=== Jailed Players ==="
+  available_jails_header: "&6=== Available Jails ==="
+  no_jailed_players: "&aNo players are currently jailed"
+  no_jails_created: "&cNo jails have been created yet. Use /setjail <name> to create one"
+
+# Command usage help
+help:
+  jail: "&cUsage: /jail <player> [jail] [reason]"
+  unjail: "&cUsage: /unjail <player>"
+  jailinfo: "&cUsage: /jailinfo <player>"
+  setjail: "&cUsage: /setjail <jail_name> [description]"
+  removejail: "&cUsage: /removejail <jail_name>"
+  
+# Default jail settings
+defaults:
+  jail_name: "default"
+  jail_description: "Default jail location"
+  reason: "No reason specified"
