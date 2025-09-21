@@ -1,0 +1,34 @@
+# Jail Plugin Configuration
+
+# Database settings
+database:
+  type: sqlite
+  filename: jail_data.db
+
+# Jail location (set using /setjail command)
+jail:
+  world: world
+  x: 0.0
+  y: 64.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+
+# NPC settings
+npc:
+  enabled: true
+  spawn_radius: 5.0
+  name_format: "&c[JAILED] &f{player}"
+  skin_enabled: true
+
+# Messages
+messages:
+  jail_success: "&aPlayer {player} has been jailed for: {reason}"
+  unjail_success: "&aPlayer {player} has been unjailed"
+  already_jailed: "&cPlayer {player} is already jailed"
+  not_jailed: "&cPlayer {player} is not jailed"
+  jail_not_set: "&cJail location not set! Use /setjail first"
+  jail_set: "&aJail location set successfully"
+  player_not_found: "&cPlayer {player} not found"
+  no_permission: "&cYou don't have permission to use this command"
+  jail_info: "&6Jail Info for {player}:\n&7Reason: &f{reason}\n&7Jailed by: &f{jailer}\n&7Date: &f{date}"

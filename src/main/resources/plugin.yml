@@ -1,0 +1,49 @@
+name: JailPlugin
+version: 1.0.0
+main: net.dessibelle.JailPlugin.JailPlugin
+api-version: 1.20
+author: Dessibelle
+description: A comprehensive jail plugin with NPC management for offline players
+website: https://yourwebsite.com
+
+depend: [Citizens]
+
+commands:
+  jail:
+    description: Jail a player
+    usage: /jail <player> [reason]
+    permission: jail.admin
+  unjail:
+    description: Unjail a player
+    usage: /unjail <player>
+    permission: jail.admin
+  jailinfo:
+    description: Get information about a jailed player
+    usage: /jailinfo <player>
+    permission: jail.info
+  jaillist:
+    description: List all jailed players
+    usage: /jaillist
+    permission: jail.list
+  setjail:
+    description: Set the jail location
+    usage: /setjail
+    permission: jail.admin
+
+permissions:
+  jail.admin:
+    description: Allows jailing and unjailing players
+    default: op
+  jail.info:
+    description: Allows viewing jail information
+    default: op
+  jail.list:
+    description: Allows listing jailed players
+    default: op
+  jail.*:
+    description: Gives access to all jail commands
+    default: op
+    children:
+      jail.admin: true
+      jail.info: true
+      jail.list: true
